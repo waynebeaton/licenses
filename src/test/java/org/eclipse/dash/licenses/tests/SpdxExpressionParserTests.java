@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.dash.licenses.spdx.SpdxExpressionParser;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,24 @@ class SpdxExpressionParserTests {
 		void testPrecedence3() {
 			assertEquals("((Apache-2.0 AND MIT) OR (EPL-1.0 AND BSD0))",
 					new SpdxExpressionParser().parse("Apache-2.0 AND MIT OR EPL-1.0 and BSD0").toString());
+		}
+
+		@Test
+		void testPrecedence5() {
+			assertEquals("((EPL-1.0 AND Apache-2.0) OR MIT)",
+					new SpdxExpressionParser().parse("EPL-1.0 AND Apache-2.0 OR MIT").toString());
+		}
+
+		@Test
+		void testPrecedence6() {
+			assertEquals("((Apache-2.0 AND (BSD0 OR MIT)) OR EPL-2.0)",
+					new SpdxExpressionParser().parse("Apache-2.0 AND (BSD0 OR MIT) OR EPL-2.0").toString());
+		}
+
+		@Test
+		void testExceptionPrecedence6() {
+			assertEquals("(EPL-1.0 OR (Apache-2.0 AND MIT))",
+					new SpdxExpressionParser().parse("EPL-1.0 OR Apache-2.0 AND MIT").toString());
 		}
 
 		@Test
@@ -154,6 +173,15 @@ class SpdxExpressionParserTests {
 		void testPlusInExpression2() {
 			assertEquals("((BSD0 AND Apache-2.0) OR (EPL-1.0)+)",
 					new SpdxExpressionParser().parse("BSD0 AND Apache-2.0 OR EPL-1.0+").toString());
+		}
+	}
+
+	@Nested
+	class TestBroken {
+		@Test
+		@Disabled
+		void testBrokenBinaryExpression() {
+			assertFalse(new SpdxExpressionParser().parse("BSD0 AND ").isValid());
 		}
 	}
 

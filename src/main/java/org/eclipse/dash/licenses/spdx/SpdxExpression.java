@@ -19,4 +19,7 @@ public abstract class SpdxExpression {
 		return false;
 	}
 
+	public boolean isValid() {
+		return true;
+	}
 }

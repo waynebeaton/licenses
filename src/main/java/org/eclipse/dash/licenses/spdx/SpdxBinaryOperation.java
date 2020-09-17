@@ -129,6 +129,11 @@ public class SpdxBinaryOperation extends SpdxExpression {
 	}
 
 	@Override
+	public boolean isValid() {
+		return left.isValid() && right.isValid();
+	}
+
+	@Override
 	public String toString() {
 		return "(" + left.toString() + " " + operator.toString() + " " + right.toString() + ")";
 	}

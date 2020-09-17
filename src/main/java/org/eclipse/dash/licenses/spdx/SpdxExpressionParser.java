@@ -24,49 +24,47 @@ public class SpdxExpressionParser {
 		tokenizer.ordinaryChar(')');
 		tokenizer.ordinaryChar('+');
 
-		return parse(tokenizer);
+		return parse(tokenizer, null);
 	}
 
-	private SpdxExpression parse(StreamTokenizer tokenizer) {
+	private SpdxExpression parse(StreamTokenizer tokenizer, SpdxExpression expression) {
 		try {
-			SpdxExpression expression = null;
-			while (true) {
-				int token = tokenizer.nextToken();
-				switch (token) {
-				case StreamTokenizer.TT_EOF:
-					return expression;
-				case StreamTokenizer.TT_WORD:
-					String symbol = tokenizer.sval.toLowerCase();
-					switch (symbol) {
-					case "and": {
-						SpdxExpression right = parse(tokenizer);
-						return SpdxBinaryOperation.create(SpdxBinaryOperation.AND, expression, right);
-					}
-					case "or": {
-						SpdxExpression right = parse(tokenizer);
-						return SpdxBinaryOperation.create(SpdxBinaryOperation.OR, expression, right);
-					}
-					case "with": {
-						SpdxExpression right = parse(tokenizer);
-						return SpdxBinaryOperation.create(SpdxBinaryOperation.WITH, expression, right);
-					}
-					default:
-						// Assume that the token is an SPDX identifier
-						// Note that we grab the original form from the tokenizer
-						// and note the converted (lowercase) version that we used
-						// in the switch.
-						expression = new SpdxIdentifier(tokenizer.sval);
-					}
-					break;
-				case '(':
-					expression = new SpdxGroup(parse(tokenizer));
-					break;
-				case ')':
-					return expression;
-				case '+':
-					expression = new SpdxPlus((SpdxIdentifier) expression);
-					break;
+			int token = tokenizer.nextToken();
+			switch (token) {
+			case StreamTokenizer.TT_WORD:
+				String symbol = tokenizer.sval.toLowerCase();
+				switch (symbol) {
+				case "and": {
+					SpdxExpression right = parse(tokenizer, null);
+					return parse(tokenizer, SpdxBinaryOperation.create(SpdxBinaryOperation.AND, expression, right));
 				}
+				case "or": {
+					SpdxExpression right = parse(tokenizer, null);
+					return parse(tokenizer, SpdxBinaryOperation.create(SpdxBinaryOperation.OR, expression, right));
+				}
+				case "with": {
+					SpdxExpression right = parse(tokenizer, null);
+					return parse(tokenizer, SpdxBinaryOperation.create(SpdxBinaryOperation.WITH, expression, right));
+				}
+				default:
+					// Assume that the token is an SPDX identifier
+					// Note that we grab the original form from the tokenizer
+					// and note the converted (lowercase) version that we used
+					// in the switch.
+					return parse(tokenizer, new SpdxIdentifier(tokenizer.sval));
+				}
+			case '+':
+				return parse(tokenizer, new SpdxPlus((SpdxIdentifier) expression));
+			case '(':
+				SpdxGroup group = new SpdxGroup(parse(tokenizer, expression));
+				tokenizer.nextToken();
+				return parse(tokenizer, group);
+			case ')':
+
+				tokenizer.pushBack();
+				return expression;
+			case StreamTokenizer.TT_EOF:
+				return expression;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
