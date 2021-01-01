@@ -11,19 +11,17 @@ package org.eclipse.dash.licenses.cli;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.eclipse.dash.licenses.IContentData;
-import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.LicenseSupport.Status;
-import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedContentData;
+import org.eclipse.dash.licenses.review.CreateReviewCommand;
+import org.eclipse.dash.licenses.review.FindExistingReviewCommand;
+import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.IssuesApi;
+import org.gitlab4j.api.models.Issue;
 
 /**
  * The "Create Review Request" collector tracks the results that likely require
@@ -59,149 +57,48 @@ public class CreateReviewRequestCollector implements IResultsCollector {
 				output.println(String.format("Project: [%s](%s)", project.getName(), project.getUrl()));
 				output.println();
 			}
-			output.println("The following content requires review:");
-			output.println();
-			needsReview.stream().sorted((a, b) -> a.getId().compareTo(b.getId())).forEach(each -> describe(each));
-			output.println();
+
+			try (GitLabApi gitLabApi = new GitLabApi(getHostUrl(), getAccessToken())) {
+				IssuesApi issuesApi = gitLabApi.getIssuesApi();
+				for (LicenseData data : needsReview) {
+					if (!data.getId().isValid())
+						continue;
+					Issue existing = new FindExistingReviewCommand(data).find(issuesApi);
+					if (existing != null) {
+						output.println(String.format("A review has already been requested for %s\n - %s",
+								data.getId().toString(), existing.getWebUrl()));
+						continue;
+					}
+					Issue created = new CreateReviewCommand(data).create(issuesApi);
+					if (created == null) {
+						output.println(String.format(
+								"An error occurred while attempting to create a review request for %s", data.getId()));
+						// TODO If we break creating a review, then don't try to create any more.
+						break;
+					}
+					output.println(String.format("A new review request was created for %s\n - %s",
+							data.getId().toString(), created.getWebUrl()));
+
+					break;
+				}
+			} catch (GitLabApiException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		output.flush();
 	}
 
-	private void describe(LicenseData licenseData) {
-		output.println(String.format("* [ ] %s", licenseData.getId()));
-		licenseData.contentData().forEach(data -> describeItem(data));
-		String searchUrl = IPZillaSearchBuilder.build(licenseData);
-		if (searchUrl != null) {
-			output.println(String.format("  - [Search IPZilla](%s)", searchUrl));
-		}
-		IContentId id = licenseData.getId();
-		if ("maven".equals(id.getType()) && "mavencentral".equals(id.getSource())) {
-			output.println(String.format("  - [Maven Central](https://search.maven.org/artifact/%s/%s/%s/jar)",
-					id.getNamespace(), id.getName(), id.getVersion()));
-			var source = getMavenSourceUrl(id);
-			if (source != null) {
-				output.println(String.format("  - [Source](%s) from Maven Central", source));
-			}
-		}
-		if ("npm".equals(id.getType()) && "npmjs".equals(id.getSource())) {
-			var builder = new StringBuilder();
-			if (!"-".equals(id.getNamespace())) {
-				builder.append(id.getNamespace());
-				builder.append('/');
-			}
-			builder.append(id.getName());
-			output.println(String.format("  - [npmjs.com](https://www.npmjs.com/package/%s/v/%s)", builder.toString(),
-					id.getVersion()));
-		}
+	private String getHostUrl() {
+		return System.getProperty("org.eclipse.dash.repository-host", "https://gitlab.eclipse.org");
 	}
 
-	/**
-	 * THis method writes potentially helpful information to make the intellectual
-	 * review process as easy as possible to the output writer.
-	 * 
-	 * @param data
-	 */
-	private void describeItem(IContentData data) {
-		// FIXME This is clunky
-
-		String authority = data.getAuthority();
-		if (data.getUrl() != null)
-			authority = String.format("[%s](%s)", authority, data.getUrl());
-		output.println(String.format("  - %s %s (%d)", authority, data.getLicense(), data.getScore()));
-		switch (data.getAuthority()) {
-		case ClearlyDefinedContentData.CLEARLYDEFINED:
-			((ClearlyDefinedContentData) data).discoveredLicenses()
-					.forEach(license -> output.println("    - " + license));
-		};
+	private String getAccessToken() {
+		return System.getProperty("org.eclipse.dash.token");
 	}
 
 	@Override
 	public int getStatus() {
 		return needsReview.size();
-	}
-
-	private String getMavenSourceUrl(IContentId id) {
-		if (!id.isValid())
-			return null;
-
-		// FIXME Validate that this file pattern is correct.
-		// This pattern was observed and appears to be accurate.
-		var url = "https://search.maven.org/remotecontent?filepath={groupPath}/{artifactid}/{version}/{artifactid}-{version}-sources.jar";
-		url = url.replace("{groupPath}", id.getNamespace().replace('.', '/'));
-		url = url.replace("{artifactid}", id.getName());
-		url = url.replace("{version}", id.getVersion());
-
-		if (remoteFileExists(url)) {
-			return url;
-		}
-
-		return null;
-	}
-
-	private static boolean remoteFileExists(String url) {
-		try {
-			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-			connection.setRequestMethod("HEAD");
-			return (connection.getResponseCode() == HttpURLConnection.HTTP_OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	static final class IPZillaSearchBuilder {
-		private static final String[] COMMON_TERMS = new String[] { "apache", "eclipse", "source", "platform", "plugin",
-				"parent", "client", "server" };
-		private static final int SEARCH_TERM_MINIMUM_LENGTH = 5;
-
-		Set<String> terms = new LinkedHashSet<>();
-
-		public static String build(LicenseData licenseData) {
-			return new IPZillaSearchBuilder().get(licenseData);
-		}
-
-		private void add(String term) {
-			// Break the name into segments (non-word characters) and add the segments from
-			// the name to the search terms. We arbitrarily decide that terms that are
-			// "short" aren't interesting and skip them. The logic being that shorter words
-			// are more likely to be common, and common words will clutter up our search.
-			if (Arrays.stream(COMMON_TERMS).anyMatch(each -> each.equalsIgnoreCase(term)))
-				return;
-			if (term.length() >= SEARCH_TERM_MINIMUM_LENGTH)
-				terms.add(term);
-		}
-
-		private String get(LicenseData licenseData) {
-			if (!licenseData.getId().isValid())
-				return null;
-
-			String namespace = licenseData.getId().getNamespace();
-			String name = licenseData.getId().getName();
-
-			// Assemble terms from the content data that might result
-			// in an interesting search.
-			terms.add(namespace);
-			terms.add(name);
-
-			// Break the name into segments (non-word characters) and add the segments from
-			// the name to the search terms.
-			for (String segment : name.split("\\W"))
-				add(segment);
-
-			for (String segment : namespace.split("\\W"))
-				add(segment);
-
-			if (terms.isEmpty())
-				return null;
-
-			var builder = new StringBuilder();
-			builder.append("https://dev.eclipse.org/ipzilla/buglist.cgi");
-			builder.append("?short_desc_type=anywords");
-			builder.append("&short_desc=");
-			builder.append(String.join("+", terms));
-			builder.append("&long_desc_type=substring");
-
-			return builder.toString();
-		}
 	}
 }

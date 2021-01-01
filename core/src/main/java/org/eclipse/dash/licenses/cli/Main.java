@@ -76,12 +76,7 @@ public class Main {
 
 		String reviewPath = settings.getReviewFilePath();
 		if (reviewPath != null) {
-			try {
-				collectors.add(new CreateReviewRequestCollector(project, getWriter(reviewPath)));
-			} catch (FileNotFoundException e1) {
-				System.out.println("Can't write to " + reviewPath);
-				System.exit(1);
-			}
+			collectors.add(new CreateReviewRequestCollector(project, System.out));
 		}
 
 		Arrays.stream(settings.getFileNames()).forEach(name -> {
