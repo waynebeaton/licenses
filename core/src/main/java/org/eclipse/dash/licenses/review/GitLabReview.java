@@ -16,14 +16,11 @@ import org.eclipse.dash.licenses.IContentData;
 import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedContentData;
-import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.IssuesApi;
-import org.gitlab4j.api.models.Issue;
 
-public class CreateReviewCommand {
+public class GitLabReview {
 	private LicenseData licenseData;
 
-	public CreateReviewCommand(LicenseData licenseData) {
+	public GitLabReview(LicenseData licenseData) {
 		this.licenseData = licenseData;
 	}
 
@@ -31,9 +28,8 @@ public class CreateReviewCommand {
 		return getContentId().toString();
 	}
 
-	public Issue create(IssuesApi issuesApi) throws GitLabApiException {
-		return issuesApi.createIssue("eclipsefdn/iplab/iplab", getTitle(), getDescription(), false, null, null,
-				"Review Needed", null, null, null, null);
+	public String getLabels() {
+		return "Review Needed";
 	}
 
 	public String getDescription() {
@@ -44,11 +40,13 @@ public class CreateReviewCommand {
 		if (searchUrl != null) {
 			builder.append(String.format("  - [Search IPZilla](%s)\n", searchUrl));
 		}
+
+		// FIXME This is clunky
 		IContentId id = licenseData.getId();
 		if ("maven".equals(id.getType()) && "mavencentral".equals(id.getSource())) {
 			builder.append(String.format("  - [Maven Central](https://search.maven.org/artifact/%s/%s/%s/jar)\n",
 					id.getNamespace(), id.getName(), id.getVersion()));
-			var source = getMavenSourceUrl();
+			var source = getVerifiedMavenSourceUrl();
 			if (source != null) {
 				builder.append(String.format("  - [Source](%s) from Maven Central\n", source));
 			}
@@ -86,7 +84,19 @@ public class CreateReviewCommand {
 		};
 	}
 
-	private String getMavenSourceUrl() {
+	public String getVerifiedMavenSourceUrl() {
+		var url = getMavenSourceUrl();
+		if (url == null)
+			return null;
+
+		if (remoteFileExists(url)) {
+			return url;
+		}
+
+		return null;
+	}
+
+	public String getMavenSourceUrl() {
 		var id = getContentId();
 		if (!id.isValid())
 			return null;
@@ -98,11 +108,7 @@ public class CreateReviewCommand {
 		url = url.replace("{artifactid}", id.getName());
 		url = url.replace("{version}", id.getVersion());
 
-		if (remoteFileExists(url)) {
-			return url;
-		}
-
-		return null;
+		return url;
 	}
 
 	private IContentId getContentId() {
@@ -110,6 +116,7 @@ public class CreateReviewCommand {
 	}
 
 	private static boolean remoteFileExists(String url) {
+		// FIXME This method doesn't belong here.
 		try {
 			HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setRequestMethod("HEAD");

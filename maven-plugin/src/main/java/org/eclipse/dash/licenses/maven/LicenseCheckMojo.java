@@ -37,10 +37,10 @@ import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.ISettings;
 import org.eclipse.dash.licenses.LicenseChecker;
 import org.eclipse.dash.licenses.cli.CSVCollector;
-import org.eclipse.dash.licenses.cli.CreateReviewRequestCollector;
 import org.eclipse.dash.licenses.cli.IResultsCollector;
 import org.eclipse.dash.licenses.cli.NeedsReviewCollector;
 import org.eclipse.dash.licenses.cli.Project;
+import org.eclipse.dash.licenses.review.CreateReviewRequestCollector;
 
 /**
  * Maven goal for running the Dash License Check tool.
