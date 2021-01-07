@@ -9,18 +9,24 @@
  *************************************************************************/
 package org.eclipse.dash.licenses.tests;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.eclipse.dash.licenses.ContentId;
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.review.GitLabReview;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class GitLabReviewTests {
+
+	@Nested
+	class GitLabSupportTests {
+		@Test
+		void testCreateReview() {
+		}
+	}
 
 	@Nested
 	class MavenReviewTests {
@@ -38,10 +44,19 @@ class GitLabReviewTests {
 		}
 
 		@Test
-		void testMavenSourceUrl() {
+		void testMavenCentralUrl() {
+			assertEquals("https://search.maven.org/artifact/group.path/artifact/1.0/jar", review.getMavenCentralUrl());
+		}
+
+		@Test
+		void testMavenCentralSourceUrl() {
 			assertEquals(
 					"https://search.maven.org/remotecontent?filepath=group/path/artifact/1.0/artifact-1.0-sources.jar",
-					review.getMavenSourceUrl());
+					review.getMavenCentralSourceUrl());
+		}
+
+		void testNpmjsUrl() {
+			assertNull(review.getNpmjsUrl());
 		}
 	}
 
@@ -60,9 +75,18 @@ class GitLabReviewTests {
 		}
 
 		@Test
-		@Disabled
-		void testMavenSourceUrl() {
-			assertNull(review.getMavenSourceUrl());
+		void testNpmjsUrl() {
+			assertEquals("https://www.npmjs.com/package/group.path/artifact/v/1.0", review.getNpmjsUrl());
 		}
+
+		@Test
+		void testMavenSourceUrl() {
+			assertNull(review.getMavenCentralSourceUrl());
+		}
+	}
+
+	@Nested
+	class IPZillaSearchBuilderTests {
+
 	}
 }

@@ -35,32 +35,30 @@ public class GitLabReview {
 	public String getDescription() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(String.format("%s\n", licenseData.getId()));
+
 		licenseData.contentData().forEach(data -> describeItem(data, builder));
+
 		String searchUrl = IPZillaSearchBuilder.build(licenseData);
 		if (searchUrl != null) {
 			builder.append(String.format("  - [Search IPZilla](%s)\n", searchUrl));
 		}
 
 		// FIXME This is clunky
-		IContentId id = licenseData.getId();
-		if ("maven".equals(id.getType()) && "mavencentral".equals(id.getSource())) {
-			builder.append(String.format("  - [Maven Central](https://search.maven.org/artifact/%s/%s/%s/jar)\n",
-					id.getNamespace(), id.getName(), id.getVersion()));
-			var source = getVerifiedMavenSourceUrl();
+		var mavenCentralUrl = getMavenCentralUrl();
+		if (mavenCentralUrl != null) {
+			builder.append(String.format("  - [Maven Central](%s)\n", mavenCentralUrl));
+
+			var source = getVerifiedMavenCentralSourceUrl();
 			if (source != null) {
 				builder.append(String.format("  - [Source](%s) from Maven Central\n", source));
 			}
 		}
-		if ("npm".equals(id.getType()) && "npmjs".equals(id.getSource())) {
-			var npmId = new StringBuilder();
-			if (!"-".equals(id.getNamespace())) {
-				npmId.append(id.getNamespace());
-				npmId.append('/');
-			}
-			npmId.append(id.getName());
-			builder.append(String.format("  - [npmjs.com](https://www.npmjs.com/package/%s/v/%s)\n", npmId.toString(),
-					id.getVersion()));
+
+		var npmjsUrl = getNpmjsUrl();
+		if (npmjsUrl != null) {
+			builder.append(String.format("  - [npmjs.com](%s)\n", getNpmjsUrl()));
 		}
+
 		return builder.toString();
 	}
 
@@ -84,10 +82,46 @@ public class GitLabReview {
 		};
 	}
 
-	public String getVerifiedMavenSourceUrl() {
-		var url = getMavenSourceUrl();
-		if (url == null)
+	public boolean isFromMavenCentral() {
+		return "mavencentral".equals(getContentId().getSource());
+	}
+
+	public boolean isFromNpmjs() {
+		return "npmjs".equals(getContentId().getSource());
+	}
+
+	public String getMavenCentralUrl() {
+		if (!isFromMavenCentral()) {
 			return null;
+		}
+
+		var id = getContentId();
+
+		return String.format("https://search.maven.org/artifact/%s/%s/%s/jar", id.getNamespace(), id.getName(),
+				id.getVersion());
+	}
+
+	public String getNpmjsUrl() {
+		var id = getContentId();
+		if (!isFromNpmjs()) {
+			return null;
+		}
+
+		var npmId = new StringBuilder();
+		if (!"-".equals(id.getNamespace())) {
+			npmId.append(id.getNamespace());
+			npmId.append('/');
+		}
+		npmId.append(id.getName());
+
+		return String.format("https://www.npmjs.com/package/%s/v/%s", npmId.toString(), id.getVersion());
+	}
+
+	public String getVerifiedMavenCentralSourceUrl() {
+		var url = getMavenCentralSourceUrl();
+		if (url == null) {
+			return null;
+		}
 
 		if (remoteFileExists(url)) {
 			return url;
@@ -96,10 +130,12 @@ public class GitLabReview {
 		return null;
 	}
 
-	public String getMavenSourceUrl() {
-		var id = getContentId();
-		if (!id.isValid())
+	public String getMavenCentralSourceUrl() {
+		if (!isFromMavenCentral()) {
 			return null;
+		}
+
+		var id = getContentId();
 
 		// FIXME Validate that this file pattern is correct.
 		// This pattern was observed and appears to be accurate.

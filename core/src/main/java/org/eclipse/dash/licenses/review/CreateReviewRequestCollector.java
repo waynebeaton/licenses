@@ -46,8 +46,8 @@ public class CreateReviewRequestCollector implements IResultsCollector {
 			output.println(
 					"Vetted license information was found for all content. No further investigation is required.");
 		} else {
-			GitLabSupport gitLabSupport = new GitLabSupport(getHostUrl(), getAccessToken(), getRepositoryPath());
-			new GitLabReviewsSupport(gitLabSupport).createReviews(needsReview, output);
+			var gitlab = new GitLabSupport(getHostUrl(), getAccessToken(), getRepositoryPath());
+			gitlab.createReviews(needsReview, output);
 		}
 		output.flush();
 	}

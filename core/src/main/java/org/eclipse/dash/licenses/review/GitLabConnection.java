@@ -17,11 +17,11 @@ import org.gitlab4j.api.models.Issue;
 import org.gitlab4j.api.models.IssueFilter;
 
 public class GitLabConnection {
-	private GitLabSupport gitLabSupport;
+	private GitLabSupport gitLab;
 	private GitLabApi gitLabApi;
 
-	GitLabConnection(GitLabSupport gitLabSupport, GitLabApi gitLabApi) {
-		this.gitLabSupport = gitLabSupport;
+	public GitLabConnection(GitLabSupport gitLabReviewsSupport, GitLabApi gitLabApi) {
+		this.gitLab = gitLabReviewsSupport;
 		this.gitLabApi = gitLabApi;
 	}
 
@@ -42,6 +42,6 @@ public class GitLabConnection {
 	}
 
 	private String getRepositoryPath() {
-		return gitLabSupport.getPath();
+		return gitLab.getPath();
 	}
 }
