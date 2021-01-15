@@ -83,7 +83,6 @@ public class GitLabSupport {
 				} catch (GitLabApiException e) {
 					throw new RuntimeException(e);
 				}
-				break;
 			}
 		});
 	}

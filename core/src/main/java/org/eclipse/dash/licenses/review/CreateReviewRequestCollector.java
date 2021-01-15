@@ -28,8 +28,10 @@ import org.eclipse.dash.licenses.cli.IResultsCollector;
 public class CreateReviewRequestCollector implements IResultsCollector {
 	private PrintWriter output;
 	private List<LicenseData> needsReview = new ArrayList<>();
+	private ISettings settings;
 
 	public CreateReviewRequestCollector(ISettings settings, OutputStream out) {
+		this.settings = settings;
 		output = new PrintWriter(out);
 	}
 
@@ -46,7 +48,8 @@ public class CreateReviewRequestCollector implements IResultsCollector {
 			output.println(
 					"Vetted license information was found for all content. No further investigation is required.");
 		} else {
-			var gitlab = new GitLabSupport(getHostUrl(), getAccessToken(), getRepositoryPath());
+			var gitlab = new GitLabSupport(settings.getIpLabHostUrl(), settings.getIpLabToken(),
+					settings.getIpLabRepositoryPath());
 			gitlab.createReviews(needsReview, output);
 		}
 		output.flush();
@@ -55,17 +58,5 @@ public class CreateReviewRequestCollector implements IResultsCollector {
 	@Override
 	public int getStatus() {
 		return needsReview.size();
-	}
-
-	String getHostUrl() {
-		return System.getProperty("org.eclipse.dash.repository-host", "https://gitlab.eclipse.org");
-	}
-
-	String getAccessToken() {
-		return System.getProperty("org.eclipse.dash.token");
-	}
-
-	private String getRepositoryPath() {
-		return System.getProperty("org.eclipse.dash.repository-path", "eclipsefdn/iplab/iplab");
 	}
 }

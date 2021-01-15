@@ -73,8 +73,7 @@ public class Main {
 			}
 		}
 
-		String reviewPath = settings.getReviewFilePath();
-		if (reviewPath != null) {
+		if (settings.canCreateReviews()) {
 			collectors.add(new CreateReviewRequestCollector(settings, System.out));
 		}
 

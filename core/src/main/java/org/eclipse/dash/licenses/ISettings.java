@@ -35,4 +35,44 @@ public interface ISettings {
 	default int getTimeout() {
 		return 60;
 	}
+
+	/**
+	 * Answers whether or not we have the information that we required to create
+	 * requests for review by the EF IP Team.
+	 * 
+	 * @return
+	 */
+	default boolean canCreateReviews() {
+		return getIpLabToken() != null;
+	}
+
+	/**
+	 * The GitLab authentication token that we need to connect to GitLab to create
+	 * requests for review.
+	 * 
+	 * @return the token or <code>null</code> if no value is available.
+	 */
+	default String getIpLabToken() {
+		// TODO Started as a hack, but might be worth experimenting with
+		return System.getProperty("org.eclipse.dash.token");
+	}
+
+	/**
+	 * The URL of the GitLab host of the "IP Lab" repository.
+	 * 
+	 * @return A valid URL.
+	 */
+	default String getIpLabHostUrl() {
+		return System.getProperty("org.eclipse.dash.repository-host", "https://gitlab.eclipse.org");
+	}
+
+	/**
+	 * The path (relative to the GitLab host) of the path of the "IP Lab"
+	 * repository.
+	 * 
+	 * @return A valid path.
+	 */
+	default String getIpLabRepositoryPath() {
+		return System.getProperty("org.eclipse.dash.repository-path", "eclipsefdn/iplab/iplab");
+	}
 }

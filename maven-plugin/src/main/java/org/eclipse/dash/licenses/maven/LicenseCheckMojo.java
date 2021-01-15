@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (c) 2020, Red Hat Inc.
+ * Copyright (c) 2020, Red Hat Inc. and others
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -39,7 +39,6 @@ import org.eclipse.dash.licenses.LicenseChecker;
 import org.eclipse.dash.licenses.cli.CSVCollector;
 import org.eclipse.dash.licenses.cli.IResultsCollector;
 import org.eclipse.dash.licenses.cli.NeedsReviewCollector;
-import org.eclipse.dash.licenses.cli.Project;
 import org.eclipse.dash.licenses.review.CreateReviewRequestCollector;
 
 /**
@@ -111,6 +110,9 @@ public class LicenseCheckMojo extends AbstractArtifactFilteringMojo {
 	 */
 	@Parameter(property = "dash.confidence", defaultValue = "75")
 	private int confidence;
+	
+	@Parameter(property = "dash.iplab.token")
+	private String iplabToken;
 
 	/**
 	 * Skip execution of the Dash License Check mojo.
@@ -186,13 +188,8 @@ public class LicenseCheckMojo extends AbstractArtifactFilteringMojo {
 			throw new MojoExecutionException("Can't write dependency summary file", e);
 		}
 
-		try {
-			review.getParentFile().mkdirs();
-			OutputStream reviewOut = new FileOutputStream(review);
-			Project project = Project.getProject(projectId);
-			collectors.add(new CreateReviewRequestCollector(project, reviewOut));
-		} catch (FileNotFoundException e) {
-			throw new MojoExecutionException("Can't write review request file", e);
+		if (settings.canCreateReviews()) {
+			collectors.add(new CreateReviewRequestCollector(settings, primaryOut));
 		}
 
 		LicenseChecker checker = new LicenseChecker(settings);
@@ -213,8 +210,5 @@ public class LicenseCheckMojo extends AbstractArtifactFilteringMojo {
 		}
 
 		getLog().info("Summary file was written to: " + summary);
-		if (needsReviewCollector.getStatus() > 0) {
-			getLog().info("Review request file was written to: " + review);
-		}
 	}
 }
