@@ -14,10 +14,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.LicenseSupport.Status;
 import org.eclipse.dash.licenses.cli.IResultsCollector;
-import org.eclipse.dash.licenses.context.IContext;
 
 /**
  * The "Create Review Request" collector tracks the results that likely require
@@ -26,12 +27,13 @@ import org.eclipse.dash.licenses.context.IContext;
  * a review request.
  */
 public class CreateReviewRequestCollector implements IResultsCollector {
-	private IContext context;
+	@Inject
+	GitLabSupport gitLab;
+
 	private PrintWriter output;
 	private List<LicenseData> needsReview = new ArrayList<>();
 
-	public CreateReviewRequestCollector(IContext context, OutputStream out) {
-		this.context = context;
+	public CreateReviewRequestCollector(OutputStream out) {
 		output = new PrintWriter(out);
 	}
 
@@ -45,8 +47,7 @@ public class CreateReviewRequestCollector implements IResultsCollector {
 	@Override
 	public void close() {
 		if (!needsReview.isEmpty()) {
-			var gitlab = context.getGitLabService();
-			gitlab.createReviews(needsReview, output);
+			gitLab.createReviews(needsReview, output);
 		}
 		output.flush();
 	}

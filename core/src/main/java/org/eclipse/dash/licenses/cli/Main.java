@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (c) 2019, The Eclipse Foundation and others.
+ * Copyright (c) 2019,2021 The Eclipse Foundation and others.
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -22,9 +22,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.dash.licenses.IContentId;
-import org.eclipse.dash.licenses.context.DefaultContext;
-import org.eclipse.dash.licenses.context.IContext;
+import org.eclipse.dash.licenses.LicenseChecker;
+import org.eclipse.dash.licenses.context.LicenseToolModule;
 import org.eclipse.dash.licenses.review.CreateReviewRequestCollector;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * This class provides a CLI entrypoint to determine licenses for content. The
@@ -58,7 +61,8 @@ public class Main {
 			System.exit(0);
 		}
 
-		IContext context = new DefaultContext(settings);
+		Injector injector = Guice.createInjector(new LicenseToolModule(settings));
+		LicenseChecker checker = injector.getInstance(LicenseChecker.class);
 
 		List<IResultsCollector> collectors = new ArrayList<>();
 
@@ -77,7 +81,7 @@ public class Main {
 		}
 
 		if (settings.isReview()) {
-			collectors.add(new CreateReviewRequestCollector(context, System.out));
+			collectors.add(new CreateReviewRequestCollector(System.out));
 		}
 
 		Arrays.stream(settings.getFileNames()).forEach(name -> {
@@ -92,7 +96,6 @@ public class Main {
 			if (reader != null) {
 				Collection<IContentId> dependencies = reader.getContentIds();
 
-				var checker = context.getLicenseCheckerService();
 				checker.getLicenseData(dependencies).forEach((id, licenseData) -> {
 					collectors.forEach(collector -> collector.accept(licenseData));
 				});

@@ -12,10 +12,22 @@ package org.eclipse.dash.licenses.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.eclipse.dash.licenses.LicenseSupport;
-import org.eclipse.dash.licenses.tests.util.TestContext;
+import org.eclipse.dash.licenses.tests.util.TestLicenseToolModule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 class LicenseSupportTests {
+
+	private LicenseSupport licenseSupport;
+
+	@BeforeEach
+	void setup() {
+		Injector injector = Guice.createInjector(new TestLicenseToolModule());
+		licenseSupport = injector.getInstance(LicenseSupport.class);
+	}
 
 	/**
 	 * Basic test to confirm that we can look up a single license by SPDX code.
@@ -24,19 +36,19 @@ class LicenseSupportTests {
 	 */
 	@Test
 	void testApprovedLicense() {
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("EPL-2.0"));
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("epl-2.0"));
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("BSD-2-Clause"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("EPL-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("epl-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("BSD-2-Clause"));
 	}
 
 	@Test
 	void testRestrictedLicense() {
-		assertEquals(LicenseSupport.Status.Restricted, getLicenseSupport().getStatus("GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Restricted, licenseSupport.getStatus("GPL-2.0"));
 	}
 
 	@Test
 	void testEmptyLicense() {
-		assertEquals(LicenseSupport.Status.Restricted, getLicenseSupport().getStatus(""));
+		assertEquals(LicenseSupport.Status.Restricted, licenseSupport.getStatus(""));
 	}
 
 	/**
@@ -46,12 +58,12 @@ class LicenseSupportTests {
 	 */
 	@Test
 	void testConjunctionRestricted() {
-		assertEquals(LicenseSupport.Status.Restricted, getLicenseSupport().getStatus("EPL-2.0 AND GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Restricted, licenseSupport.getStatus("EPL-2.0 AND GPL-2.0"));
 	}
 
 	@Test
 	void testConjunctionApproved() {
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("EPL-2.0 AND Apache-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("EPL-2.0 AND Apache-2.0"));
 	}
 
 	/**
@@ -61,14 +73,13 @@ class LicenseSupportTests {
 	 */
 	@Test
 	void testDisjunction() {
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("EPL-2.0 OR GPL-2.0"));
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("EPL-2.0 OR MIT OR GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("EPL-2.0 OR GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("EPL-2.0 OR MIT OR GPL-2.0"));
 	}
 
 	@Test
 	void testComplexDisjunction() {
-		assertEquals(LicenseSupport.Status.Approved,
-				getLicenseSupport().getStatus("BSD-2-Clause OR (Apache-2.0 OR MIT)"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("BSD-2-Clause OR (Apache-2.0 OR MIT)"));
 	}
 
 	/**
@@ -77,18 +88,14 @@ class LicenseSupportTests {
 	 */
 	@Test
 	void testComplexApproved() {
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("(EPL-2.0 AND MIT) OR GPL-2.0"));
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("(EPL-2.0 OR MIT) OR GPL-2.0"));
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("(EPL-2.0 OR MIT) OR GPL-2.0"));
-		assertEquals(LicenseSupport.Status.Approved, getLicenseSupport().getStatus("(EPL-2.0 AND (MIT OR GPL-2.0))"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("(EPL-2.0 AND MIT) OR GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("(EPL-2.0 OR MIT) OR GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("(EPL-2.0 OR MIT) OR GPL-2.0"));
+		assertEquals(LicenseSupport.Status.Approved, licenseSupport.getStatus("(EPL-2.0 AND (MIT OR GPL-2.0))"));
 	}
 
 	@Test
 	void testComplexRestricted() {
-		assertEquals(LicenseSupport.Status.Restricted, getLicenseSupport().getStatus("(EPL-2.0 OR MIT) AND GPL-2.0"));
-	}
-
-	private LicenseSupport getLicenseSupport() {
-		return new TestContext().getLicenseService();
+		assertEquals(LicenseSupport.Status.Restricted, licenseSupport.getStatus("(EPL-2.0 OR MIT) AND GPL-2.0"));
 	}
 }

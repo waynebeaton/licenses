@@ -12,23 +12,24 @@ package org.eclipse.dash.licenses.npmjs;
 import java.net.URI;
 import java.util.function.Consumer;
 
+import javax.inject.Inject;
+
 import org.eclipse.dash.licenses.IContentId;
-import org.eclipse.dash.licenses.context.IContext;
+import org.eclipse.dash.licenses.ISettings;
+import org.eclipse.dash.licenses.http.IHttpClientService;
 import org.eclipse.dash.licenses.util.JsonUtils;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 
-public class NpmjsPackageService implements INpmjsPackageService {
-
-	private IContext context;
-
-	public NpmjsPackageService(IContext context) {
-		this.context = context;
-	}
+public class NpmjsExtendedContentDataProvider implements IExtendedContentDataProvider {
+	@Inject
+	ISettings settings;
+	@Inject
+	IHttpClientService httpClientService;
 
 	@Override
-	public NpmjsPackage getPackage(IContentId id) {
+	public ExtendedContentData getExtendedContentData(IContentId id) {
 		if (!"npmjs".equals(id.getSource()))
 			return null;
 
@@ -42,7 +43,7 @@ public class NpmjsPackageService implements INpmjsPackageService {
 	}
 
 	private void getMetadata(IContentId id, Consumer<JsonObject> consumer) {
-		context.getHttpClientService().get(getMetadataUrl(id), "application/json", inputStream -> {
+		httpClientService.get(getMetadataUrl(id), "application/json", inputStream -> {
 			consumer.accept(JsonUtils.readJson(inputStream));
 		});
 	}
@@ -68,13 +69,12 @@ public class NpmjsPackageService implements INpmjsPackageService {
 			this.id = id;
 		}
 
-		public NpmjsPackage build() {
-			var thing = new NpmjsPackage(id);
-			thing.setLicense(getLicense());
-			thing.setUrl(getUrl());
-			thing.setDistributionUrl(getTarballUrl());
-			thing.setRepositoryUrl(getRepositoryUrl());
-			thing.setSourceUrl(getSourceUrl());
+		public ExtendedContentData build() {
+			var thing = new ExtendedContentData("npmjs", getUrl());
+			thing.addItem("License", getLicense());
+			thing.addItem("Distribution", getTarballUrl());
+			thing.addItem("Repository", getRepositoryUrl());
+			thing.addItem("Source", getSourceUrl());
 
 			return thing;
 		}
@@ -130,7 +130,7 @@ public class NpmjsPackageService implements INpmjsPackageService {
 				url.append("/archive/v");
 				url.append(id.getVersion());
 				url.append(".zip");
-				if (context.getHttpClientService().remoteFileExists(url.toString()))
+				if (httpClientService.remoteFileExists(url.toString()))
 					return url.toString();
 			} catch (Exception e) {
 				// If we encounter an exception, just skip it and return null.

@@ -12,30 +12,38 @@ package org.eclipse.dash.licenses.review;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
+import javax.inject.Inject;
+
+import org.eclipse.dash.licenses.ISettings;
 import org.eclipse.dash.licenses.LicenseData;
-import org.eclipse.dash.licenses.context.IContext;
+import org.eclipse.dash.licenses.npmjs.ExtendedContentData;
+import org.eclipse.dash.licenses.npmjs.ExtendedContentDataService;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Issue;
 
 public class GitLabSupport {
-	private IContext context;
 
-	public GitLabSupport(IContext context) {
-		this.context = context;
-	}
+	@Inject
+	ISettings settings;
+
+	@Inject
+	ExtendedContentDataService dataService;
 
 	public void createReviews(List<LicenseData> needsReview, PrintWriter output) {
 		execute(connection -> {
 			var count = 1;
-			for (LicenseData data : needsReview) {
-				output.println(String.format("Setting up a review for %s.", data.getId().toString()));
+			for (LicenseData licenseData : needsReview) {
+				output.println(String.format("Setting up a review for %s.", licenseData.getId().toString()));
 
-				if (!data.getId().isValid()) {
+				if (!licenseData.getId().isValid()) {
 					output.println(" - Don't know what to do with this.");
 					continue;
 				}
+
+				Stream<ExtendedContentData> extendedData = dataService.findFor(licenseData.getId());
 
 				/*
 				 * Ideally, we need a way to "create if does not already exist" feature in the
@@ -48,7 +56,7 @@ public class GitLabSupport {
 				 * required to prevent rare duplication.
 				 */
 				try {
-					GitLabReview review = new GitLabReview(context, data);
+					GitLabReview review = new GitLabReview(settings.getProjectId(), licenseData, extendedData);
 
 					Issue existing = connection.findIssue(review);
 					if (existing != null) {
@@ -83,9 +91,8 @@ public class GitLabSupport {
 	}
 
 	void execute(Consumer<GitLabConnection> callable) {
-		try (GitLabApi gitLabApi = new GitLabApi(context.getSettings().getIpLabHostUrl(),
-				context.getSettings().getIpLabToken())) {
-			callable.accept(new GitLabConnection(gitLabApi, context.getSettings().getIpLabRepositoryPath()));
+		try (GitLabApi gitLabApi = new GitLabApi(settings.getIpLabHostUrl(), settings.getIpLabToken())) {
+			callable.accept(new GitLabConnection(gitLabApi, settings.getIpLabRepositoryPath()));
 		}
 	}
 }

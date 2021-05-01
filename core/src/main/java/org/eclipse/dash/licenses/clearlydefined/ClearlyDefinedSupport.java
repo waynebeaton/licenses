@@ -16,23 +16,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import org.eclipse.dash.licenses.IContentData;
 import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.ILicenseDataProvider;
+import org.eclipse.dash.licenses.ISettings;
 import org.eclipse.dash.licenses.LicenseSupport;
 import org.eclipse.dash.licenses.LicenseSupport.Status;
-import org.eclipse.dash.licenses.context.IContext;
+import org.eclipse.dash.licenses.http.IHttpClientService;
 import org.eclipse.dash.licenses.util.JsonUtils;
 
 import com.google.common.flogger.FluentLogger;
 
 public class ClearlyDefinedSupport implements ILicenseDataProvider {
 	private static final FluentLogger log = FluentLogger.forEnclosingClass();
-	private IContext context;
 
-	public ClearlyDefinedSupport(IContext context) {
-		this.context = context;
-	}
+	@Inject
+	ISettings settings;
+	@Inject
+	IHttpClientService httpClientService;
+	@Inject
+	LicenseSupport licenseService;
 
 	/**
 	 * The ClearlyDefined API expects a flat array of ids in JSON format in the
@@ -82,8 +87,8 @@ public class ClearlyDefinedSupport implements ILicenseDataProvider {
 
 		log.atInfo().log("Querying ClearlyDefined for license data for %1$d items.", filteredIds.size());
 
-		int code = context.getHttpClientService().post(context.getSettings().getClearlyDefinedDefinitionsUrl(),
-				"application/json", JsonUtils.toJson(filteredIds), response -> {
+		int code = httpClientService.post(settings.getClearlyDefinedDefinitionsUrl(), "application/json",
+				JsonUtils.toJson(filteredIds), response -> {
 					// FIXME Seems like overkill.
 					AtomicInteger counter = new AtomicInteger();
 
@@ -133,9 +138,9 @@ public class ClearlyDefinedSupport implements ILicenseDataProvider {
 	 *         otherwise.
 	 */
 	public boolean isAccepted(ClearlyDefinedContentData data) {
-		if (data.getEffectiveScore() >= context.getSettings().getConfidenceThreshold()
-				|| data.getLicenseScore() >= context.getSettings().getConfidenceThreshold()) {
-			if (context.getLicenseService().getStatus(data.getLicense()) != LicenseSupport.Status.Approved)
+		if (data.getEffectiveScore() >= settings.getConfidenceThreshold()
+				|| data.getLicenseScore() >= settings.getConfidenceThreshold()) {
+			if (licenseService.getStatus(data.getLicense()) != LicenseSupport.Status.Approved)
 				return false;
 			return !data.discoveredLicenses().filter(license -> !"NONE".equals(license))
 					.filter(license -> !isDiscoveredLicenseApproved(license)).findAny().isPresent();
@@ -144,7 +149,7 @@ public class ClearlyDefinedSupport implements ILicenseDataProvider {
 	}
 
 	boolean isDiscoveredLicenseApproved(String license) {
-		return context.getLicenseService().getStatus(license) == LicenseSupport.Status.Approved;
+		return licenseService.getStatus(license) == LicenseSupport.Status.Approved;
 	}
 
 }

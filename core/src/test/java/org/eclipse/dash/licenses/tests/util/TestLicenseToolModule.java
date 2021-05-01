@@ -10,37 +10,54 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.eclipse.dash.licenses.ISettings;
-import org.eclipse.dash.licenses.context.DefaultContext;
+import org.eclipse.dash.licenses.LicenseChecker;
+import org.eclipse.dash.licenses.LicenseSupport;
+import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedSupport;
+import org.eclipse.dash.licenses.foundation.EclipseFoundationSupport;
 import org.eclipse.dash.licenses.http.IHttpClientService;
-import org.eclipse.dash.licenses.review.GitLabSupport;
+import org.eclipse.dash.licenses.npmjs.ExtendedContentDataService;
+import org.eclipse.dash.licenses.npmjs.IExtendedContentDataProvider;
+import org.eclipse.dash.licenses.npmjs.NpmjsExtendedContentDataProvider;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonReader;
 import jakarta.json.JsonString;
 
-/**
- * This class provides a context for testing that stubs out any behaviour that
- * might call out to an external service. Keep the tests local.
- */
-public class TestContext extends DefaultContext {
+public class TestLicenseToolModule extends AbstractModule {
 
-	public TestContext() {
-		super(new ISettings() {
-		});
+	private ISettings settings;
+
+	public TestLicenseToolModule() {
+		this.settings = new ISettings() {
+		};
 	}
 
 	@Override
-	public GitLabSupport getGitLabService() {
-		return null;
+	protected void configure() {
+		bind(ISettings.class).toInstance(settings);
+		bind(IHttpClientService.class).toInstance(getHttpClientService());
+		bind(LicenseChecker.class).toInstance(new LicenseChecker());
+		bind(EclipseFoundationSupport.class).toInstance(new EclipseFoundationSupport());
+		bind(ClearlyDefinedSupport.class).toInstance(new ClearlyDefinedSupport());
+		bind(LicenseSupport.class).toInstance(new LicenseSupport());
+		bind(ExtendedContentDataService.class).toInstance(new ExtendedContentDataService());
+
+		Multibinder<IExtendedContentDataProvider> classifierBinder = Multibinder.newSetBinder(binder(),
+				IExtendedContentDataProvider.class);
+		classifierBinder.addBinding().to(NpmjsExtendedContentDataProvider.class);
+		// classifierBinder.addBinding().to(MavenDataProvider.class);
+		// classifierBinder.addBinding().to(GithubDataProvider.class);
 	}
 
-	@Override
 	public IHttpClientService getHttpClientService() {
 		return new IHttpClientService() {
 			@Override
 			public int post(String url, String contentType, String payload, Consumer<String> handler) {
-				if (url.equals(TestContext.this.getSettings().getClearlyDefinedDefinitionsUrl())) {
+				if (url.equals(settings.getClearlyDefinedDefinitionsUrl())) {
 					// The file contains only the information for the one record; the
 					// ClearlyDefined service expects a Json collection as the response,
 					// so insert the file contents into an array and pass that value to
@@ -81,7 +98,7 @@ public class TestContext extends DefaultContext {
 					return 200;
 				}
 
-				if (url.equals(TestContext.this.getSettings().getLicenseCheckUrl())) {
+				if (url.equals(settings.getLicenseCheckUrl())) {
 
 					if (payload.startsWith("json=")) {
 						var json = URLDecoder.decode(payload.substring("json=".length()), StandardCharsets.UTF_8);
@@ -132,7 +149,7 @@ public class TestContext extends DefaultContext {
 
 			@Override
 			public int get(String url, String contentType, Consumer<InputStream> handler) {
-				if (url.equals(TestContext.this.getSettings().getApprovedLicensesUrl())) {
+				if (url.equals(settings.getApprovedLicensesUrl())) {
 					handler.accept(this.getClass().getResourceAsStream("/licenses.json"));
 					return 200;
 				}

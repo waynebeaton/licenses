@@ -16,10 +16,13 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import javax.inject.Inject;
+
 import org.eclipse.dash.licenses.IContentData;
 import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.ILicenseDataProvider;
-import org.eclipse.dash.licenses.context.IContext;
+import org.eclipse.dash.licenses.ISettings;
+import org.eclipse.dash.licenses.http.IHttpClientService;
 
 import com.google.common.flogger.FluentLogger;
 
@@ -29,12 +32,12 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 
 public class EclipseFoundationSupport implements ILicenseDataProvider {
-	private IContext context;
-	private static final FluentLogger log = FluentLogger.forEnclosingClass();
+	@Inject
+	ISettings settings;
+	@Inject
+	IHttpClientService httpClientService;
 
-	public EclipseFoundationSupport(IContext context) {
-		this.context = context;
-	}
+	private static final FluentLogger log = FluentLogger.forEnclosingClass();
 
 	@Override
 	public void queryLicenseData(Collection<IContentId> ids, Consumer<IContentData> consumer) {
@@ -43,7 +46,7 @@ public class EclipseFoundationSupport implements ILicenseDataProvider {
 
 		log.atInfo().log("Querying Eclipse Foundation for license data for %1$d items.", ids.size());
 
-		String url = context.getSettings().getLicenseCheckUrl();
+		String url = settings.getLicenseCheckUrl();
 
 		JsonArrayBuilder builder = Json.createBuilderFactory(null).createArrayBuilder();
 		ids.stream().forEach(id -> builder.add(id.toString()));
@@ -51,7 +54,7 @@ public class EclipseFoundationSupport implements ILicenseDataProvider {
 		String form = URLEncoder.encode("json", StandardCharsets.UTF_8) + "="
 				+ URLEncoder.encode(json, StandardCharsets.UTF_8);
 
-		int code = context.getHttpClientService().post(url, "application/x-www-form-urlencoded", form, response -> {
+		int code = httpClientService.post(url, "application/x-www-form-urlencoded", form, response -> {
 			AtomicInteger counter = new AtomicInteger();
 
 			JsonReader reader = Json.createReader(new StringReader(response));

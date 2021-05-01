@@ -14,19 +14,23 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import org.eclipse.dash.licenses.LicenseSupport.Status;
-import org.eclipse.dash.licenses.context.IContext;
+import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedSupport;
+import org.eclipse.dash.licenses.foundation.EclipseFoundationSupport;
 import org.eclipse.dash.licenses.util.Batchifier;
 
 public class LicenseChecker {
-	private IContext context;
-
-	public LicenseChecker(IContext context) {
-		this.context = context;
-	}
+	@Inject
+	ISettings settings;
+	@Inject
+	EclipseFoundationSupport ipzillaService;
+	@Inject
+	ClearlyDefinedSupport clearlyDefinedService;
 
 	private ILicenseDataProvider[] getLicenseDataProviders() {
-		return new ILicenseDataProvider[] { context.getIPZillaService(), context.getClearlyDefinedService() };
+		return new ILicenseDataProvider[] { ipzillaService, clearlyDefinedService };
 	}
 
 	/**
@@ -43,7 +47,7 @@ public class LicenseChecker {
 		for (ILicenseDataProvider provider : getLicenseDataProviders()) {
 			// @formatter:off
 			new Batchifier<IContentId>()
-				.setBatchSize(context.getSettings().getBatchSize())
+				.setBatchSize(settings.getBatchSize())
 				.setConsumer(batch -> {
 					provider.queryLicenseData(batch, data -> {
 						var item = licenseData.get(data.getId());
@@ -56,6 +60,7 @@ public class LicenseChecker {
 						.iterator());
 			// @formatter:on
 		}
+
 		return licenseData;
 	}
 }

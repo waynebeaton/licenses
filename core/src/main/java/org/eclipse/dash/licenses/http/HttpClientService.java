@@ -23,20 +23,19 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.function.Consumer;
 
-import org.eclipse.dash.licenses.context.IContext;
+import javax.inject.Inject;
+
+import org.eclipse.dash.licenses.ISettings;
 
 public class HttpClientService implements IHttpClientService {
 
-	private IContext context;
-
-	public HttpClientService(IContext context) {
-		this.context = context;
-	}
+	@Inject
+	ISettings settings;
 
 	@Override
 	public int post(String url, String contentType, String payload, Consumer<String> handler) {
 		try {
-			Duration timeout = Duration.ofSeconds(context.getSettings().getTimeout());
+			Duration timeout = Duration.ofSeconds(settings.getTimeout());
 			HttpRequest request = HttpRequest.newBuilder(URI.create(url)).header("Content-Type", contentType)
 					.POST(BodyPublishers.ofString(payload, StandardCharsets.UTF_8)).timeout(timeout).build();
 
@@ -65,7 +64,7 @@ public class HttpClientService implements IHttpClientService {
 	@Override
 	public int get(String url, String contentType, Consumer<InputStream> handler) {
 		try {
-			Duration timeout = Duration.ofSeconds(context.getSettings().getTimeout());
+			Duration timeout = Duration.ofSeconds(settings.getTimeout());
 			HttpRequest request = HttpRequest.newBuilder(URI.create(url)).header("Content-Type", contentType).GET()
 					.timeout(timeout).build();
 

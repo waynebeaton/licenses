@@ -21,7 +21,7 @@ import org.eclipse.dash.licenses.context.IContext;
 import org.eclipse.dash.licenses.http.IHttpClientService;
 import org.eclipse.dash.licenses.npmjs.INpmjsPackageService;
 import org.eclipse.dash.licenses.npmjs.NpmjsPackage;
-import org.eclipse.dash.licenses.npmjs.NpmjsPackageService;
+import org.eclipse.dash.licenses.npmjs.NpmjsExtendedContentDataProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class NpmjsPackageTests {
 
 	@Test
 	void testValid() {
-		INpmjsPackageService service = new NpmjsPackageService(context);
+		INpmjsPackageService service = new NpmjsExtendedContentDataProvider(context);
 		IContentId id = ContentId.getContentId("npm/npmjs/-/chalk/0.1.0");
 		var thing = service.getPackage(id);
 

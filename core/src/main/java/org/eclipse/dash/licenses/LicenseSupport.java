@@ -14,7 +14,9 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.dash.licenses.context.IContext;
+import javax.inject.Inject;
+
+import org.eclipse.dash.licenses.http.IHttpClientService;
 import org.eclipse.dash.licenses.spdx.SpdxExpressionParser;
 
 import jakarta.json.Json;
@@ -23,17 +25,22 @@ import jakarta.json.JsonReader;
 
 public class LicenseSupport {
 
+	@Inject
+	ISettings settings;
+	@Inject
+	IHttpClientService httpClientService;
+
 	private Map<String, String> approvedLicenses;
 
 	public enum Status {
 		Approved, Restricted
 	}
 
-	public LicenseSupport(IContext context) {
-		context.getHttpClientService().get(context.getSettings().getApprovedLicensesUrl(), "application/json",
-				response -> {
-					approvedLicenses = getApprovedLicenses(new InputStreamReader(response));
-				});
+	@Inject
+	public void init() {
+		httpClientService.get(settings.getApprovedLicensesUrl(), "application/json", response -> {
+			approvedLicenses = getApprovedLicenses(new InputStreamReader(response));
+		});
 	}
 
 	private static Map<String, String> getApprovedLicenses(Reader contentReader) {

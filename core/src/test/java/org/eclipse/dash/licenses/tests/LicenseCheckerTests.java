@@ -17,18 +17,30 @@ import java.util.Map;
 
 import org.eclipse.dash.licenses.ContentId;
 import org.eclipse.dash.licenses.IContentId;
+import org.eclipse.dash.licenses.LicenseChecker;
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.LicenseSupport;
-import org.eclipse.dash.licenses.tests.util.TestContext;
+import org.eclipse.dash.licenses.tests.util.TestLicenseToolModule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 class LicenseCheckerTests {
+
+	private LicenseChecker licenseChecker;
+
+	@BeforeEach
+	void setup() {
+		Injector injector = Guice.createInjector(new TestLicenseToolModule());
+		licenseChecker = injector.getInstance(LicenseChecker.class);
+	}
 
 	@Test
 	void testSingleApprovedLicense() {
 		ContentId contentId = ContentId.getContentId("npm/npmjs/-/write/1.0.3");
-		Map<IContentId, LicenseData> licenseData = new TestContext().getLicenseCheckerService()
-				.getLicenseData(Collections.singleton(contentId));
+		Map<IContentId, LicenseData> licenseData = licenseChecker.getLicenseData(Collections.singleton(contentId));
 
 		LicenseData data = licenseData.get(contentId);
 		assertEquals("MIT", data.getLicense());
@@ -38,8 +50,7 @@ class LicenseCheckerTests {
 	@Test
 	void testSingleUnapprovedLicense() {
 		ContentId contentId = ContentId.getContentId("npm/npmjs/@yarnpkg/lockfile/1.1.0");
-		Map<IContentId, LicenseData> licenseData = new TestContext().getLicenseCheckerService()
-				.getLicenseData(Collections.singleton(contentId));
+		Map<IContentId, LicenseData> licenseData = licenseChecker.getLicenseData(Collections.singleton(contentId));
 
 		LicenseData data = licenseData.get(contentId);
 		assertEquals("BSD-2-Clause", data.getLicense());
@@ -49,8 +60,7 @@ class LicenseCheckerTests {
 	@Test
 	void testWithUnsupported() {
 		ContentId contentId = ContentId.getContentId("p2/eclipseplugin/-/write/0.2.0");
-		Map<IContentId, LicenseData> licenseData = new TestContext().getLicenseCheckerService()
-				.getLicenseData(Collections.singleton(contentId));
+		Map<IContentId, LicenseData> licenseData = licenseChecker.getLicenseData(Collections.singleton(contentId));
 
 		LicenseData data = licenseData.get(contentId);
 		assertNull(data.getLicense());

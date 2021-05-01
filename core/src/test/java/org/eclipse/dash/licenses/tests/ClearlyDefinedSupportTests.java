@@ -23,18 +23,31 @@ import org.eclipse.dash.licenses.IContentData;
 import org.eclipse.dash.licenses.LicenseSupport;
 import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedContentData;
 import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedSupport;
-import org.eclipse.dash.licenses.tests.util.TestContext;
+import org.eclipse.dash.licenses.tests.util.TestLicenseToolModule;
 import org.eclipse.dash.licenses.util.JsonUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 class ClearlyDefinedSupportTests {
+
+	private ClearlyDefinedSupport clearlyDefined;
+
+	@BeforeEach
+	void setup() {
+		Injector injector = Guice.createInjector(new TestLicenseToolModule());
+		clearlyDefined = injector.getInstance(ClearlyDefinedSupport.class);
+	}
 
 	@Test
 	void testMatchApproved() {
 		List<IContentData> results = new ArrayList<>();
-		new TestContext().getClearlyDefinedService().queryLicenseData(
-				Collections.singleton(ContentId.getContentId("npm/npmjs/-/write/1.0.3")), data -> results.add(data));
+
+		clearlyDefined.queryLicenseData(Collections.singleton(ContentId.getContentId("npm/npmjs/-/write/1.0.3")),
+				data -> results.add(data));
 
 		assertEquals(1, results.size());
 
@@ -50,7 +63,7 @@ class ClearlyDefinedSupportTests {
 	@Test
 	void testMatchRestricted() {
 		List<IContentData> results = new ArrayList<>();
-		new TestContext().getClearlyDefinedService().queryLicenseData(
+		clearlyDefined.queryLicenseData(
 				Collections.singleton(ContentId.getContentId("npm/npmjs/@yarnpkg/lockfile/1.1.0")),
 				data -> results.add(data));
 
@@ -68,8 +81,7 @@ class ClearlyDefinedSupportTests {
 	@Test
 	void testEmptyRequest() {
 		List<IContentData> results = new ArrayList<>();
-		new TestContext().getClearlyDefinedService().queryLicenseData(Collections.emptySet(),
-				data -> results.add(data));
+		clearlyDefined.queryLicenseData(Collections.emptySet(), data -> results.add(data));
 
 		assertTrue(results.isEmpty());
 	}
@@ -77,8 +89,7 @@ class ClearlyDefinedSupportTests {
 	@Test
 	void testWithUnsupported() {
 		List<IContentData> results = new ArrayList<>();
-		new TestContext().getClearlyDefinedService().queryLicenseData(
-				Collections.singleton(ContentId.getContentId("p2/eclipseplugin/-/write/0.2.0")),
+		clearlyDefined.queryLicenseData(Collections.singleton(ContentId.getContentId("p2/eclipseplugin/-/write/0.2.0")),
 				data -> results.add(data));
 
 		assertTrue(results.isEmpty());
@@ -86,10 +97,6 @@ class ClearlyDefinedSupportTests {
 
 	@Nested
 	class TestServiceMethods {
-
-		ClearlyDefinedSupport getClearlyDefinedService() {
-			return (ClearlyDefinedSupport) new TestContext().getClearlyDefinedService();
-		}
 
 		@Test
 		void testAcceptable() {
@@ -119,7 +126,7 @@ class ClearlyDefinedSupportTests {
 			ClearlyDefinedContentData data = new ClearlyDefinedContentData("id",
 					JsonUtils.readJson(new StringReader(json)));
 
-			assertTrue(getClearlyDefinedService().isAccepted(data));
+			assertTrue(clearlyDefined.isAccepted(data));
 
 		}
 
@@ -150,7 +157,7 @@ class ClearlyDefinedSupportTests {
 			ClearlyDefinedContentData data = new ClearlyDefinedContentData("id",
 					JsonUtils.readJson(new StringReader(json)));
 
-			assertFalse(getClearlyDefinedService().isAccepted(data));
+			assertFalse(clearlyDefined.isAccepted(data));
 
 		}
 
@@ -182,7 +189,7 @@ class ClearlyDefinedSupportTests {
 			ClearlyDefinedContentData data = new ClearlyDefinedContentData("id",
 					JsonUtils.readJson(new StringReader(json)));
 
-			assertFalse(getClearlyDefinedService().isAccepted(data));
+			assertFalse(clearlyDefined.isAccepted(data));
 		}
 	}
 }

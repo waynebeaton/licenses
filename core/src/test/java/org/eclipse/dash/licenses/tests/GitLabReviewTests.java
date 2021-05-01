@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.eclipse.dash.licenses.ContentId;
 import org.eclipse.dash.licenses.InvalidContentId;
@@ -42,8 +43,9 @@ class GitLabReviewTests {
 
 		@BeforeEach
 		void setup() {
-			review = new GitLabReview(new TestContext(),
-					new LicenseData(ContentId.getContentId("maven/mavencentral/group.path/artifact/1.0")));
+			review = new GitLabReview("technology.dash",
+					new LicenseData(ContentId.getContentId("maven/mavencentral/group.path/artifact/1.0")),
+					Stream.empty());
 		}
 
 		@Test
