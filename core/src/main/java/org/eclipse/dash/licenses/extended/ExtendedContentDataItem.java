@@ -1,4 +1,4 @@
-package org.eclipse.dash.licenses.npmjs;
+package org.eclipse.dash.licenses.extended;
 
 public class ExtendedContentDataItem {
 	private String label;

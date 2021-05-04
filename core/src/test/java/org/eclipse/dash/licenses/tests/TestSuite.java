@@ -9,7 +9,6 @@
  *************************************************************************/
 package org.eclipse.dash.licenses.tests;
 
-import org.eclipse.dash.licenses.tests.GitLabReviewTests.IPZillaSearchBuilderTests;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.runner.RunWith;
@@ -19,7 +18,6 @@ import org.junit.runner.RunWith;
 { BatchifierTests.class, ClearlyDefinedContentDataTests.class, ClearlyDefinedSupportTests.class,
 		CommandLineSettingsTest.class, ContentIdTests.class, LicenseCheckerTests.class, LicenseSupportTests.class,
 		MavenIdParserTests.class, NpmJsIdParserTests.class, PackageLockFileReaderTests.class,
-		SpdxExpressionParserTests.class, FoundationDataTests.class, NpmjsPackageTests.class,
-		IPZillaSearchBuilderTests.class })
+		SpdxExpressionParserTests.class, FoundationDataTests.class })
 public class TestSuite {
 }

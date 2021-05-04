@@ -9,25 +9,35 @@
  *************************************************************************/
 package org.eclipse.dash.licenses.tests;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import org.eclipse.dash.licenses.ContentId;
 import org.eclipse.dash.licenses.InvalidContentId;
-import org.eclipse.dash.licenses.LicenseData;
-import org.eclipse.dash.licenses.review.GitLabReview;
+import org.eclipse.dash.licenses.extended.ExtendedContentData;
+import org.eclipse.dash.licenses.extended.ExtendedContentDataItem;
+import org.eclipse.dash.licenses.extended.ExtendedContentDataService;
 import org.eclipse.dash.licenses.review.IPZillaSearchBuilder;
-import org.eclipse.dash.licenses.tests.util.TestContext;
+import org.eclipse.dash.licenses.tests.util.TestLicenseToolModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class GitLabReviewTests {
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+public class ExtendedContentDataServiceTests {
+	private ExtendedContentDataService dataService;
+
+	@BeforeEach
+	void setup() {
+		Injector injector = Guice.createInjector(new TestLicenseToolModule());
+		dataService = injector.getInstance(ExtendedContentDataService.class);
+	}
 
 	@Nested
 	class GitLabSupportTests {
@@ -38,61 +48,34 @@ class GitLabReviewTests {
 	}
 
 	@Nested
-	class MavenReviewTests {
-		private GitLabReview review;
-
-		@BeforeEach
-		void setup() {
-			review = new GitLabReview("technology.dash",
-					new LicenseData(ContentId.getContentId("maven/mavencentral/group.path/artifact/1.0")),
-					Stream.empty());
-		}
+	class MavenCentralExtendedContentDataTests {
 
 		@Test
 		void testTitle() {
-			assertEquals("maven/mavencentral/group.path/artifact/1.0", review.getTitle());
-		}
-
-		@Test
-		void testMavenCentralUrl() {
-			assertEquals("https://search.maven.org/artifact/group.path/artifact/1.0/jar", review.getMavenCentralUrl());
-		}
-
-		@Test
-		void testMavenCentralSourceUrl() {
+			ExtendedContentData data = dataService
+					.findFor(ContentId.getContentId("maven/mavencentral/group.path/artifact/1.0")).findAny().get();
+			assertEquals("Maven Central", data.getTitle());
+			assertEquals("https://search.maven.org/artifact/group.path/artifact/1.0/jar", data.getUrl());
+			ExtendedContentDataItem item = data.getItems().findFirst().get();
+			assertEquals("Source", item.getLabel());
 			assertEquals(
 					"https://search.maven.org/remotecontent?filepath=group/path/artifact/1.0/artifact-1.0-sources.jar",
-					review.getMavenCentralSourceUrl());
-		}
-
-		void testNpmjsUrl() {
-			assertNull(review.getNpmjsUrl());
+					item.getValue());
 		}
 	}
 
 	@Nested
-	class NpmReviewTests {
-		private GitLabReview review;
-
-		@BeforeEach
-		void setup() {
-			review = new GitLabReview(new TestContext(),
-					new LicenseData(ContentId.getContentId("npm/npmjs/group.path/artifact/1.0")));
-		}
-
+	class NpmjsExtendedContentDataTests {
 		@Test
-		void testTitle() {
-			assertEquals("npm/npmjs/group.path/artifact/1.0", review.getTitle());
-		}
+		void testValid() {
 
-		@Test
-		void testNpmjsUrl() {
-			assertEquals("https://www.npmjs.com/package/group.path/artifact/v/1.0", review.getNpmjsUrl());
-		}
-
-		@Test
-		void testMavenSourceUrl() {
-			assertNull(review.getMavenCentralSourceUrl());
+			ExtendedContentData thing = dataService.findFor(ContentId.getContentId("npm/npmjs/-/chalk/0.1.0")).findAny()
+					.get();
+			assertEquals("npmjs", thing.getTitle());
+			assertEquals("git://github.com/sindresorhus/chalk.git", thing.get("Repository"));
+			assertEquals("MIT", thing.get("License"));
+			assertEquals("https://github.com/sindresorhus/chalk/archive/v0.1.0.zip", thing.get("Source"));
+			assertEquals("https://registry.npmjs.org/chalk/-/chalk-0.1.0.tgz", thing.get("Distribution"));
 		}
 	}
 

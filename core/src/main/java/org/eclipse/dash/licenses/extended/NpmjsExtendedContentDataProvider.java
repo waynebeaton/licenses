@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *************************************************************************/
-package org.eclipse.dash.licenses.npmjs;
+package org.eclipse.dash.licenses.extended;
 
 import java.net.URI;
 import java.util.function.Consumer;

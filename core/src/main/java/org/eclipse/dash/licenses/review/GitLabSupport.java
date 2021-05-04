@@ -18,8 +18,8 @@ import javax.inject.Inject;
 
 import org.eclipse.dash.licenses.ISettings;
 import org.eclipse.dash.licenses.LicenseData;
-import org.eclipse.dash.licenses.npmjs.ExtendedContentData;
-import org.eclipse.dash.licenses.npmjs.ExtendedContentDataService;
+import org.eclipse.dash.licenses.extended.ExtendedContentData;
+import org.eclipse.dash.licenses.extended.ExtendedContentDataService;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Issue;

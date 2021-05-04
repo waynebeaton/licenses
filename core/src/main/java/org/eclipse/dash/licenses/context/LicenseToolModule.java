@@ -4,13 +4,13 @@ import org.eclipse.dash.licenses.ISettings;
 import org.eclipse.dash.licenses.LicenseChecker;
 import org.eclipse.dash.licenses.LicenseSupport;
 import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedSupport;
+import org.eclipse.dash.licenses.extended.ExtendedContentDataService;
+import org.eclipse.dash.licenses.extended.IExtendedContentDataProvider;
+import org.eclipse.dash.licenses.extended.MavenCentralExtendedContentDataProvider;
+import org.eclipse.dash.licenses.extended.NpmjsExtendedContentDataProvider;
 import org.eclipse.dash.licenses.foundation.EclipseFoundationSupport;
 import org.eclipse.dash.licenses.http.HttpClientService;
 import org.eclipse.dash.licenses.http.IHttpClientService;
-import org.eclipse.dash.licenses.npmjs.ExtendedContentDataService;
-import org.eclipse.dash.licenses.npmjs.IExtendedContentDataProvider;
-import org.eclipse.dash.licenses.npmjs.MavenCentralExtendedContentDataProvider;
-import org.eclipse.dash.licenses.npmjs.NpmjsExtendedContentDataProvider;
 import org.eclipse.dash.licenses.review.GitLabSupport;
 
 import com.google.inject.AbstractModule;

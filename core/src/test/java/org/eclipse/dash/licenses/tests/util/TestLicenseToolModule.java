@@ -13,11 +13,12 @@ import org.eclipse.dash.licenses.ISettings;
 import org.eclipse.dash.licenses.LicenseChecker;
 import org.eclipse.dash.licenses.LicenseSupport;
 import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedSupport;
+import org.eclipse.dash.licenses.extended.ExtendedContentDataService;
+import org.eclipse.dash.licenses.extended.IExtendedContentDataProvider;
+import org.eclipse.dash.licenses.extended.MavenCentralExtendedContentDataProvider;
+import org.eclipse.dash.licenses.extended.NpmjsExtendedContentDataProvider;
 import org.eclipse.dash.licenses.foundation.EclipseFoundationSupport;
 import org.eclipse.dash.licenses.http.IHttpClientService;
-import org.eclipse.dash.licenses.npmjs.ExtendedContentDataService;
-import org.eclipse.dash.licenses.npmjs.IExtendedContentDataProvider;
-import org.eclipse.dash.licenses.npmjs.NpmjsExtendedContentDataProvider;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
@@ -49,7 +50,7 @@ public class TestLicenseToolModule extends AbstractModule {
 		Multibinder<IExtendedContentDataProvider> classifierBinder = Multibinder.newSetBinder(binder(),
 				IExtendedContentDataProvider.class);
 		classifierBinder.addBinding().to(NpmjsExtendedContentDataProvider.class);
-		// classifierBinder.addBinding().to(MavenDataProvider.class);
+		classifierBinder.addBinding().to(MavenCentralExtendedContentDataProvider.class);
 		// classifierBinder.addBinding().to(GithubDataProvider.class);
 	}
 
@@ -154,7 +155,25 @@ public class TestLicenseToolModule extends AbstractModule {
 					return 200;
 				}
 
+				switch (url) {
+				case "https://registry.npmjs.org/chalk":
+					handler.accept(this.getClass().getResourceAsStream("/chalk.json"));
+					return 200;
+				}
+
 				return 404;
+			}
+
+			@Override
+			public boolean remoteFileExists(String url) {
+				switch (url) {
+				case "https://search.maven.org/artifact/group.path/artifact/1.0/jar":
+				case "https://search.maven.org/remotecontent?filepath=group/path/artifact/1.0/artifact-1.0-sources.jar":
+				case "https://github.com/sindresorhus/chalk/archive/v0.1.0.zip":
+				case "https://registry.npmjs.org/chalk/-/chalk-0.1.0.tgz":
+					return true;
+				}
+				return IHttpClientService.super.remoteFileExists(url);
 			}
 		};
 	}

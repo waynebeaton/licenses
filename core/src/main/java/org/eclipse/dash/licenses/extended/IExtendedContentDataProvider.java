@@ -1,4 +1,4 @@
-package org.eclipse.dash.licenses.npmjs;
+package org.eclipse.dash.licenses.extended;
 
 import org.eclipse.dash.licenses.IContentId;
 

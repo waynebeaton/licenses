@@ -15,7 +15,7 @@ import org.eclipse.dash.licenses.IContentData;
 import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.clearlydefined.ClearlyDefinedContentData;
-import org.eclipse.dash.licenses.npmjs.ExtendedContentData;
+import org.eclipse.dash.licenses.extended.ExtendedContentData;
 
 public class GitLabReview {
 	private String projectId;
