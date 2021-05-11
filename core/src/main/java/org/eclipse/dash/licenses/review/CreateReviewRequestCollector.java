@@ -14,8 +14,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import org.eclipse.dash.licenses.LicenseData;
 import org.eclipse.dash.licenses.LicenseSupport.Status;
 import org.eclipse.dash.licenses.cli.IResultsCollector;
@@ -27,13 +25,13 @@ import org.eclipse.dash.licenses.cli.IResultsCollector;
  * a review request.
  */
 public class CreateReviewRequestCollector implements IResultsCollector {
-	@Inject
 	GitLabSupport gitLab;
 
 	private PrintWriter output;
 	private List<LicenseData> needsReview = new ArrayList<>();
 
-	public CreateReviewRequestCollector(OutputStream out) {
+	public CreateReviewRequestCollector(GitLabSupport gitLab, OutputStream out) {
+		this.gitLab = gitLab;
 		output = new PrintWriter(out);
 	}
 

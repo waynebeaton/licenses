@@ -25,6 +25,7 @@ import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.LicenseChecker;
 import org.eclipse.dash.licenses.context.LicenseToolModule;
 import org.eclipse.dash.licenses.review.CreateReviewRequestCollector;
+import org.eclipse.dash.licenses.review.GitLabSupport;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -81,7 +82,7 @@ public class Main {
 		}
 
 		if (settings.isReview()) {
-			collectors.add(new CreateReviewRequestCollector(System.out));
+			collectors.add(new CreateReviewRequestCollector(injector.getInstance(GitLabSupport.class), System.out));
 		}
 
 		Arrays.stream(settings.getFileNames()).forEach(name -> {

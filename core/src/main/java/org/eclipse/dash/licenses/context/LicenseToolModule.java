@@ -33,13 +33,12 @@ public class LicenseToolModule extends AbstractModule {
 		bind(LicenseSupport.class).toInstance(new LicenseSupport());
 		bind(GitLabSupport.class).toInstance(new GitLabSupport());
 		bind(IHttpClientService.class).toInstance(new HttpClientService());
-		bind(LicenseSupport.class).toInstance(new LicenseSupport());
 		bind(ExtendedContentDataService.class).toInstance(new ExtendedContentDataService());
 
-		Multibinder<IExtendedContentDataProvider> classifierBinder = Multibinder.newSetBinder(binder(),
+		Multibinder<IExtendedContentDataProvider> extendedContentDataProviders = Multibinder.newSetBinder(binder(),
 				IExtendedContentDataProvider.class);
-		classifierBinder.addBinding().to(NpmjsExtendedContentDataProvider.class);
-		classifierBinder.addBinding().to(MavenCentralExtendedContentDataProvider.class);
+		extendedContentDataProviders.addBinding().to(NpmjsExtendedContentDataProvider.class);
+		extendedContentDataProviders.addBinding().to(MavenCentralExtendedContentDataProvider.class);
 		// classifierBinder.addBinding().to(GithubDataProvider.class);
 	}
 }
