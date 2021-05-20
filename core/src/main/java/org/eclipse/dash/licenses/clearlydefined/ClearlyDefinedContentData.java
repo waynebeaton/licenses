@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.dash.licenses.ContentId;
 import org.eclipse.dash.licenses.IContentData;
+import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.LicenseSupport.Status;
 
 import jakarta.json.JsonNumber;
@@ -131,7 +132,7 @@ public class ClearlyDefinedContentData implements IContentData {
 	}
 
 	@Override
-	public ContentId getId() {
+	public IContentId getId() {
 		return ContentId.getContentId(id);
 	}
 

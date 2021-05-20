@@ -1,5 +1,5 @@
 /*************************************************************************
- * Copyright (c) 2019, The Eclipse Foundation and others.
+ * Copyright (c) 2019,2021 The Eclipse Foundation and others.
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which accompanies this
@@ -27,7 +27,7 @@ public class ContentId implements IContentId {
 		this.version = version;
 	}
 
-	public static ContentId getContentId(String type, String source, String namespace, String name, String version) {
+	public static IContentId getContentId(String type, String source, String namespace, String name, String version) {
 
 		Pattern versionPattern = Pattern.compile("[\\w\\.\\-]+");
 		if (!versionPattern.matcher(version).matches())
@@ -36,7 +36,7 @@ public class ContentId implements IContentId {
 		return new ContentId(type, source, namespace, name, version);
 	}
 
-	public static ContentId getContentId(String string) {
+	public static IContentId getContentId(String string) {
 		String[] parts = string.split("\\/");
 		if (parts.length != 5)
 			return null;

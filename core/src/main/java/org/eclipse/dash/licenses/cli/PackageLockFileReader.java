@@ -79,7 +79,8 @@ public class PackageLockFileReader implements IDependencyListReader {
 				var name = matcher.group("name");
 				var version = value.asJsonObject().getString("version");
 
-				return ContentId.getContentId("npm", "npmjs", namespace, name, version);
+				IContentId contentId = ContentId.getContentId("npm", "npmjs", namespace, name, version);
+				return contentId == null ? new InvalidContentId(key + "@" + version) : contentId;
 			}
 			return new InvalidContentId(key);
 		}

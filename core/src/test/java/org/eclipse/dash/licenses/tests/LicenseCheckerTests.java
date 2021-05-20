@@ -39,7 +39,7 @@ class LicenseCheckerTests {
 
 	@Test
 	void testSingleApprovedLicense() {
-		ContentId contentId = ContentId.getContentId("npm/npmjs/-/write/1.0.3");
+		IContentId contentId = ContentId.getContentId("npm/npmjs/-/write/1.0.3");
 		Map<IContentId, LicenseData> licenseData = licenseChecker.getLicenseData(Collections.singleton(contentId));
 
 		LicenseData data = licenseData.get(contentId);
@@ -49,7 +49,7 @@ class LicenseCheckerTests {
 
 	@Test
 	void testSingleUnapprovedLicense() {
-		ContentId contentId = ContentId.getContentId("npm/npmjs/@yarnpkg/lockfile/1.1.0");
+		IContentId contentId = ContentId.getContentId("npm/npmjs/@yarnpkg/lockfile/1.1.0");
 		Map<IContentId, LicenseData> licenseData = licenseChecker.getLicenseData(Collections.singleton(contentId));
 
 		LicenseData data = licenseData.get(contentId);
@@ -59,7 +59,7 @@ class LicenseCheckerTests {
 
 	@Test
 	void testWithUnsupported() {
-		ContentId contentId = ContentId.getContentId("p2/eclipseplugin/-/write/0.2.0");
+		IContentId contentId = ContentId.getContentId("p2/eclipseplugin/-/write/0.2.0");
 		Map<IContentId, LicenseData> licenseData = licenseChecker.getLicenseData(Collections.singleton(contentId));
 
 		LicenseData data = licenseData.get(contentId);

@@ -13,8 +13,6 @@
 
 package org.eclipse.dash.licenses;
 
-import java.util.Optional;
-
 /**
  * A parser for Clearly Defined identifiers.
  *
@@ -25,10 +23,10 @@ public class ClearlyDefinedIdParser implements ContentIdParser {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Optional<IContentId> parseId(String input) {
+	public IContentId parseId(String input) {
 		if (input == null || input.isEmpty()) {
-			return Optional.empty();
+			return new InvalidContentId(input);
 		}
-		return Optional.ofNullable(ContentId.getContentId(input));
+		return ContentId.getContentId(input);
 	}
 }

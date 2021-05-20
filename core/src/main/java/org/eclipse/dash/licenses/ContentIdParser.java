@@ -9,10 +9,8 @@
  *************************************************************************/
 package org.eclipse.dash.licenses;
 
-import java.util.Optional;
-
 public interface ContentIdParser {
 
-	Optional<IContentId> parseId(String input);
+	IContentId parseId(String input);
 
 }

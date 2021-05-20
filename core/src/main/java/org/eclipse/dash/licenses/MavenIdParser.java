@@ -9,7 +9,6 @@
  *************************************************************************/
 package org.eclipse.dash.licenses;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +28,7 @@ public class MavenIdParser implements ContentIdParser {
 	private Pattern semanticVersionPattern = Pattern.compile("(?<version>\\d+(?:\\.\\d+){1,2}).*");
 
 	@Override
-	public Optional<IContentId> parseId(String value) {
+	public IContentId parseId(String value) {
 		// TODO Deal with (non-standard?) formats
 		/*
 		 * e.g.
@@ -45,7 +44,7 @@ public class MavenIdParser implements ContentIdParser {
 		 */
 		Matcher matcher = mavenPattern.matcher(value.trim());
 		if (!matcher.matches())
-			return Optional.empty();
+			return new InvalidContentId(value);
 
 		String groupid = matcher.group("groupid");
 		String artifactid = matcher.group("artifactid");
@@ -75,6 +74,6 @@ public class MavenIdParser implements ContentIdParser {
 			}
 		}
 
-		return Optional.ofNullable(ContentId.getContentId(type, source, groupid, artifactid, version));
+		return ContentId.getContentId(type, source, groupid, artifactid, version);
 	}
 }

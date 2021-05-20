@@ -9,7 +9,6 @@
  *************************************************************************/
 package org.eclipse.dash.licenses;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,10 +36,10 @@ public class NpmJsIdParser implements ContentIdParser {
 	);
 
 	@Override
-	public Optional<IContentId> parseId(String value) {
+	public IContentId parseId(String value) {
 		Matcher matcher = pattern.matcher(value.trim());
 		if (!matcher.matches())
-			return Optional.empty();
+			return new InvalidContentId(value);
 
 		String namespace = matcher.group("namespace");
 		if (namespace == null)
@@ -48,6 +47,6 @@ public class NpmJsIdParser implements ContentIdParser {
 		String name = matcher.group("name");
 		String version = matcher.group("version");
 
-		return Optional.ofNullable(ContentId.getContentId("npm", "npmjs", namespace, name, version));
+		return ContentId.getContentId("npm", "npmjs", namespace, name, version);
 	}
 }
