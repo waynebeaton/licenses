@@ -7,6 +7,38 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
+	<licenses>
+		<license>
+			<name>Eclipse Public License 2.0</name>
+			<url>https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Wayne Beaton</name>
+			<organization>The Eclipse Foundation</organization>
+			<organizationUrl>https://eclipse.org</organizationUrl>
+		</developer>
+	</developers>
+
+	<organization>
+		<name>The Eclipse Dash Project</name>
+		<url>https://eclipse.org/dash</url>
+	</organization>
+
+	<description>The Eclipse Dash License Tool identifies the licenses of content.</description>
+	<url>https://github.com/eclipse/dash-licenses</url>
+
+	<scm>
+		<url>https://github.com/eclipse/dash-licenses</url>
+	</scm>
+	
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/eclipse/dash-licenses/issues</url>
+    </issueManagement>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.outputTimestamp>2021-02-01T12:00:00Z</project.build.outputTimestamp>
@@ -54,7 +86,6 @@
 					<artifactId>maven-clean-plugin</artifactId>
 					<version>3.1.0</version>
 				</plugin>
-				
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-install-plugin</artifactId>
