@@ -23,6 +23,8 @@ public interface IContentId extends Comparable<IContentId> {
 
 	boolean isValid();
 
+//	boolean isSupported();
+
 	@Override
 	default int compareTo(IContentId o) {
 		return toString().compareTo(o.toString());

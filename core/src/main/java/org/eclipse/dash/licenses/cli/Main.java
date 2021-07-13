@@ -50,6 +50,8 @@ import com.google.inject.Injector;
  */
 public class Main {
 
+  private static IContext context;
+
 	public static void main(String[] args) {
 		CommandLineSettings settings = CommandLineSettings.getSettings(args);
 		if (!settings.isValid()) {
@@ -126,6 +128,9 @@ public class Main {
 				}
 				if ("yarn.lock".equals(input.getName())) {
 					return new YarnLockFileReader(new FileReader(input));
+				}
+				if ("go.sum".equals(input.getName())) {
+					return new GoSumFileReader(new FileInputStream(input), context);
 				}
 				return new FlatFileReader(new FileReader(input));
 			} else {

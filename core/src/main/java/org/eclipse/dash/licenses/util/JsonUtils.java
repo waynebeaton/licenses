@@ -15,12 +15,8 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
+import jakarta.json.*;
 import org.eclipse.dash.licenses.IContentId;
-
-import jakarta.json.Json;
-import jakarta.json.JsonArrayBuilder;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 
 public final class JsonUtils {
 	public static String toJson(Collection<IContentId> ids) {
@@ -31,13 +27,12 @@ public final class JsonUtils {
 		return json;
 	}
 
-	public static JsonObject readJson(InputStream content) {
+	public static <T extends JsonStructure> T readJson(InputStream content) {
 		return readJson(new InputStreamReader(content, StandardCharsets.UTF_8));
 	}
 
-	public static JsonObject readJson(Reader content) {
+	public static <T extends JsonStructure> T readJson(Reader content) {
 		JsonReader reader = Json.createReader(content);
-		JsonObject json = (JsonObject) reader.read();
-		return json;
+		return (T) reader.read();
 	}
 }

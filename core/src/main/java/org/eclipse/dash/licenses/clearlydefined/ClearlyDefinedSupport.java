@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-
+import jakarta.json.JsonObject;
 import org.eclipse.dash.licenses.IContentData;
 import org.eclipse.dash.licenses.IContentId;
 import org.eclipse.dash.licenses.ILicenseDataProvider;
@@ -92,7 +92,8 @@ public class ClearlyDefinedSupport implements ILicenseDataProvider {
 					// FIXME Seems like overkill.
 					AtomicInteger counter = new AtomicInteger();
 
-					JsonUtils.readJson(new StringReader(response)).forEach((key, each) -> {
+        JsonObject defJson = JsonUtils.readJson(new StringReader(response));
+        defJson.forEach((key, each) -> {
 						ClearlyDefinedContentData data = new ClearlyDefinedContentData(key, each.asJsonObject());
 						data.setStatus(isAccepted(data) ? Status.Approved : Status.Restricted);
 						consumer.accept(data);
@@ -110,7 +111,7 @@ public class ClearlyDefinedSupport implements ILicenseDataProvider {
 
 	/**
 	 * Answers whether or not this id is supported by ClearlyDefined.
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 */

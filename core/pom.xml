@@ -75,7 +75,14 @@
 			<version>1.7.1</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+		<!--  https://clearlydefined.io/definitions/maven/mavencentral/org.jsoup/jsoup/1.12.2 -->
+		<dependency>
+		<groupId>org.jsoup</groupId>
+		<artifactId>jsoup</artifactId>
+		<version>1.12.2</version>
+		</dependency>
+
+  </dependencies>
 	<build>
 		<plugins>
 			<plugin>
